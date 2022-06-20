@@ -8,4 +8,4 @@ SERVICE_ACCOUNT = (
 )
 PIPELINE_NAME = "automl-text-training"
 GCS_DATA_SRC = "gs://cloud-ml-data/NL-classification/happiness.csv"
-CREDS="gs://<your-bucket-name>/keys/acn-gcp-cc-accenture-internal-MLOps.json"
+CREDS="gs://<your-bucket-name>/keys/<your-key>.json"
