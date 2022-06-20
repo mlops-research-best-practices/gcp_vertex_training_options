@@ -55,7 +55,16 @@ def classification_model_eval_metrics(
     from google.cloud import aiplatform as aip
 
     # Fetch model eval info
-    def get_eval_info(client, model_name):
+    def get_eval_info(client, model_name:str):
+        """get evaluation information
+
+        Args:
+            client (object): client connection
+            model_name (str): ml model name
+
+        Returns:
+            tuple: ( evaluation.name, metrics_list, metrics_string_list )
+        """        
         from google.protobuf.json_format import MessageToDict
 
         response = client.list_model_evaluations(parent=model_name)
@@ -80,7 +89,16 @@ def classification_model_eval_metrics(
 
     # Use the given metrics threshold(s) to determine whether the model is
     # accurate enough to deploy.
-    def classification_thresholds_check(metrics_dict, thresholds_dict):
+    def classification_thresholds_check(metrics_dict:dict, thresholds_dict:dict):
+        """ checking classification thresholds
+
+        Args:
+            metrics_dict (dict): py dictionary for metrics
+            thresholds_dict (dict): py dictionary for thresholds
+
+        Returns:
+            bool: True or False
+        """        
         for k, v in thresholds_dict.items():
             logging.info("k {}, v {}".format(k, v))
             if k in ["auRoc", "auPrc"]:  # higher is better
