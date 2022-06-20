@@ -1,0 +1,1 @@
+This folder will store the .yaml file of each component and .json file for compiled pipeline.
