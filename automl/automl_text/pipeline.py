@@ -20,7 +20,7 @@ def pipeline(
     api_endpoint: str = "us-central1-aiplatform.googleapis.com",
     thresholds_dict_str: str = '{"auPrc": 0.95}',
 ):
-    """ Vertex Pipelines for AutoML Text Classufucation use case
+    """ Vertex Pipelines for AutoML Text Classification use case
 
     Args:
         gcs_source (str): GCS for data path

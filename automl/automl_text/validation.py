@@ -109,6 +109,12 @@ def classification_model_eval_metrics(
         return True
 
     def log_metrics(metrics_list, metricsc):
+        """ logs auc metrics and confusion metrics
+
+        Args:
+            metrics_list (_type_): _description_
+            metricsc (_type_): _description_
+        """        
         test_confusion_matrix = metrics_list[0]["confusionMatrix"]
         logging.info(f'rows: {test_confusion_matrix["rows"]}')
 
