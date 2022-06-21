@@ -9,18 +9,18 @@
   - `TEMPLATE_PATH`: <path_to_compile_path>.json
   - `PIPELINE_ROOT`: gs://<your_bucket_name>/<path_name>
   - `SERVICE_ACCOUNT`: <your_service_acc_name>@<your_project_id>.iam.gserviceaccount.com
-  - `PIPELINE_NAME` 
-  - `GCS_DATA_SRC`
-  - `CREDS`
+  - `PIPELINE_NAME` : Give the name you like for your pipeline
+  - `GCS_DATA_SRC` : do not change this
+  - `CREDS` : path to your .json credentials file. You can createb from IAM -> Service Account
 
 Ensure all the above variable need to set in `config/setup.py` file. 
 
 **NOTE**
-: Create a google cloud storage bucket
+: Create a google cloud storage bucket. Also, give minimun `Editor` permission to your service account.
 
 ###  Usage
 
-1. After, you have done the setup, to run pipeline, 
+1. After, you have done the setup, to run pipeline : 
   ```
     python3 pipeline_run.py
   ```
@@ -30,8 +30,8 @@ Ensure all the above variable need to set in `config/setup.py` file.
   src="https://github.com/mlops-research-best-practices/gcp_vertex_training_options/blob/feature-automl-text/automl/automl_text/artifacts/images/pipe.PNG"
   alt="Vertex Pipeline Image"
   title="Vertex Pipeline"
-  width="800"
-  height="600"
+  width="600"
+  height="400"
 />
 
   3.  Once, pipeline run is successful, you can visit to **Vertex AI** -> **Model**, check for `Evaluate` tab
@@ -40,16 +40,16 @@ Ensure all the above variable need to set in `config/setup.py` file.
   src="https://github.com/mlops-research-best-practices/gcp_vertex_training_options/blob/feature-automl-text/automl/automl_text/artifacts/images/eval.PNG"
   alt="Model Evaluation Image"
   title="Model Evaluation"
-  width="800"
-  height="600"
+  width="600"
+  height="400"
 />
 
 <img
   src="https://github.com/mlops-research-best-practices/gcp_vertex_training_options/blob/feature-automl-text/automl/automl_text/artifacts/images/roc.PNG"
   alt="ROC-AUC Image"
   title="ROC AUC Metrics"
-  width="800"
-  height="600"
+  width="600"
+  height="400"
 />
 
 
@@ -59,8 +59,8 @@ Ensure all the above variable need to set in `config/setup.py` file.
   src="https://github.com/mlops-research-best-practices/gcp_vertex_training_options/blob/feature-automl-text/automl/automl_text/artifacts/images/pred.PNG"
   alt="Model Prediction Image"
   title="Model Predictions"
-  width="800"
-  height="600"
+  width="600"
+  height="400"
 />
 
 
