@@ -3,6 +3,58 @@ This dataset includes taxi trips from 2013 to the present, reported to the City 
 
 This public dataset is hosted in Google BigQuery and is included in BigQuery's 1TB/mo of free tier processing. This means that each user receives 1TB of free BigQuery processing every month, which can be used to run queries on this public dataset. Watch this short video to learn how to get started quickly using BigQuery to access public datasets
 
+### Create BigQuery Dataset
+
+- Create a BigQuery dataset for babyweight if it doesn't exist
+``` bash
+  datasetexists=$(bq ls -d | grep -w vertex_automl)
+
+  if [ -n "$datasetexists" ]; then
+      echo -e "BigQuery dataset already exists!"
+
+  else
+      echo "Creating BigQuery dataset titled: vertex_automl"
+
+      bq --location=US mk --dataset \
+          --description "chicago taxi trip data" \
+          $PROJECT:vertex_automl
+      echo "Here are your current datasets:"
+      bq ls
+  fi
+```
+- Run the below query to update the table in the above dataset.
+```bash
+CREATE TABLE vertex_automl.taxi_trips as
+ WITH daynames AS (SELECT ['Sun','Mon','Tues','Wed','Thurs','Fri','Sat'] AS daysofweek),
+  chicagotaxitrips AS (
+SELECT 
+    trip_seconds, 
+    trip_miles, 
+    trip_total, 
+    payment_type, 
+    EXTRACT(HOUR FROM trip_start_timestamp) AS hourofday,
+    ML.BUCKETIZE(EXTRACT(HOUR FROM trip_start_timestamp), [0, 6, 12, 18, 24]) AS bucket_hourofday,
+    daysofweek[ORDINAL(EXTRACT(DAYOFWEEK FROM trip_start_timestamp))] AS dayofweek,
+    EXTRACT(WEEK FROM trip_start_timestamp) AS week,
+    EXTRACT(MONTH FROM trip_start_timestamp) as month,
+    IFNULL (pickup_census_tract,-1) AS pickup_census_tract,
+    IFNULL(company,"") AS company,
+    IFNULL(dropoff_census_tract,-1) AS dropoff_census_tract,
+    IFNULL(pickup_community_area,-1) AS pickup_community_area, 
+    IFNULL(dropoff_community_area,-1) AS dropoff_community_area,  
+    ST_DISTANCE(ST_GEOGPOINT(pickup_longitude, pickup_latitude), ST_GEOGPOINT(dropoff_longitude, dropoff_latitude)) AS trip_distance,
+    SQRT(POW((pickup_longitude - dropoff_longitude),2)) AS longitude,
+    SQRT(POW((pickup_latitude - dropoff_latitude), 2)) AS latitude
+FROM
+    `bigquery-public-data.chicago_taxi_trips.taxi_trips`, daynames
+    WHERE trip_miles > 0 AND trip_seconds > 0 AND trip_total BETWEEN 1 AND 100 
+    AND pickup_longitude IS NOT NULL AND dropoff_longitude IS NOT NULL
+    AND pickup_latitude IS NOT NULL AND dropoff_latitude IS NOT NULL
+    AND MOD(ABS(FARM_FINGERPRINT(CAST(trip_start_timestamp AS STRING))),1000) = 1
+) SELECT * FROM chicagotaxitrips
+```
+**NOTE**: Here, dataset name is `vertex_automl`, and bigquert table name is `taxi_trips`. Feel free to change it and make the samilar changes in `config/setup.py` file
+
 ### Environment Variables
   - `PROJECT`: "your-project-name"
   - `REGION`: e.g."us-central1"
