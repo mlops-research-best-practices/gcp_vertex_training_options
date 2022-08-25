@@ -1,0 +1,49 @@
+name: Build bqml model
+description: build bigquery machine learning model
+inputs:
+- {name: project_id, type: String, description: GCP Project ID}
+- {name: data_set_id, type: String, description: GCP dataset}
+- {name: model_name, type: String, description: 'BQML model name, user defined'}
+- {name: bucket_name, type: String, description: GCS Bucket name}
+- {name: blob_path, type: String, description: 'GCS file path, user defined'}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - |2
+
+      if ! [ -x "$(command -v pip)" ]; then
+          python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip
+      fi
+
+      PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'google-cloud-aiplatform' 'google-cloud-bigquery' 'google-cloud-storage' 'kfp==1.8.12' && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp -d)
+      printf "%s" "$0" > "$program_path/ephemeral_component.py"
+      python3 -m kfp.v2.components.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+    - "\nimport kfp\nfrom kfp.v2 import dsl\nfrom kfp.v2.dsl import *\nfrom typing\
+      \ import *\n\ndef build_bqml_model(\n    project_id: str,\n    data_set_id:\
+      \ str,\n    model_name: str,\n    bucket_name: str,\n    blob_path: str,\n):\n\
+      \    \"\"\"build bigquery machine learning model \n\n    Args:\n        project_id\
+      \ (str): GCP Project ID\n        data_set_id (str): GCP dataset\n        model_name\
+      \ (str): BQML model name, user defined\n        training_view (str): bigquery\
+      \ view name used for training\n        bucket_name (str): GCS Bucket name\n\
+      \        blob_path (str): GCS file path, user defined\n\n    \"\"\"\n    from\
+      \ google.cloud import bigquery\n    client = bigquery.Client(project=project_id)\n\
+      \n    def get_sql(bucket_name, blob_path):\n        from google.cloud import\
+      \ storage\n        storage_client = storage.Client()\n        bucket = storage_client.get_bucket(bucket_name)\n\
+      \        blob = bucket.get_blob(blob_path)\n        content = blob.download_as_string()\n\
+      \        content = str(content, \"utf-8\")\n        return content\n\n    content\
+      \ = get_sql(bucket_name, blob_path)\n    model_build_query = content.format(\n\
+      \        project_id, data_set_id, model_name\n    )\n\n    job_config = bigquery.QueryJobConfig()\n\
+      \    client.query(\n        model_build_query, job_config=job_config\n    )\
+      \  # Make an API request.\n\n"
+    args:
+    - --executor_input
+    - {executorInput: null}
+    - --function_to_execute
+    - build_bqml_model

@@ -1,0 +1,137 @@
+name: Deploy bqml model
+description: deploying the bqml model on vertex endpoint
+inputs:
+- {name: project_id, type: String, description: GCP Project ID}
+- {name: location, type: String, description: GCP Region}
+- {name: model_name, type: String, description: BQML model name}
+- {name: endpoint_display_name, type: String, description: vertex endpoint display
+    name}
+- {name: machine_type, type: String, description: 'e.g. n1-standard-2, n1-standard-4'}
+- {name: deployed_model_display_name, type: String, description: _description_. Defaults
+    to None., optional: true}
+- {name: traffic_percentage, type: Integer, description: ' Defaults to 0.', default: '0',
+  optional: true}
+- {name: traffic_split, type: 'typing.Dict[str, int]', description: Defaults to None.,
+  optional: true}
+- {name: min_replica_count, type: Integer, description: minimum replication . Defaults
+    to 1., default: '1', optional: true}
+- {name: max_replica_count, type: Integer, description: maximum replication. Defaults
+    to 2., default: '2', optional: true}
+- {name: accelerator_type, type: String, description: GPU Type. Defaults to None.,
+  optional: true}
+- {name: accelerator_count, type: Integer, description: No. of GPUs. Defaults to None.,
+  optional: true}
+- name: sync
+  type: Boolean
+  description: Defaults to True.
+  default: "True"
+  optional: true
+outputs:
+- {name: vertex_endpoint, type: Artifact, description: 'vertex endpoint, output artifact'}
+- {name: vertex_model, type: Model, description: 'vertex model, output artifact'}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - |2
+
+      if ! [ -x "$(command -v pip)" ]; then
+          python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip
+      fi
+
+      PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'google-cloud-aiplatform' 'google-cloud-storage' 'db-dtypes' 'kfp==1.8.12' && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp -d)
+      printf "%s" "$0" > "$program_path/ephemeral_component.py"
+      python3 -m kfp.v2.components.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+    - |2+
+
+      import kfp
+      from kfp.v2 import dsl
+      from kfp.v2.dsl import *
+      from typing import *
+
+      def deploy_bqml_model(
+          project_id: str,
+          location: str,
+          model_name: str,
+          endpoint_display_name: str,
+          machine_type: str,
+          vertex_endpoint: Output[Artifact],
+          vertex_model: Output[Model],
+          deployed_model_display_name: Optional[str] = None,
+          traffic_percentage: Optional[int] = 0,
+          traffic_split: Optional[Dict[str, int]] = None,
+          min_replica_count: int = 1,
+          max_replica_count: int = 2,
+          accelerator_type: Optional[str] = None,
+          accelerator_count: Optional[int] = None,
+          # explanation_metadata: Optional[explain.ExplanationMetadata] = None,
+          # explanation_parameters: Optional[explain.ExplanationParameters] = None,
+          # metadata: Optional[Sequence[Tuple[str, str]]] = (),
+          sync: bool = True,
+      ):
+          """deploying the bqml model on vertex endpoint
+
+          Args:
+              project_id (str): GCP Project ID
+              location (str): GCP Region
+              model_name (str): BQML model name
+              endpoint_display_name (str): vertex endpoint display name
+              machine_type (str): e.g. n1-standard-2, n1-standard-4
+              vertex_endpoint (Output[Artifact]): vertex endpoint, output artifact
+              vertex_model (Output[Model]): vertex model, output artifact
+              deployed_model_display_name (Optional[str], optional): _description_. Defaults to None.
+              traffic_percentage (Optional[int], optional):  Defaults to 0.
+              traffic_split (Optional[Dict[str, int]], optional): Defaults to None.
+              min_replica_count (int, optional): minimum replication . Defaults to 1.
+              max_replica_count (int, optional): maximum replication. Defaults to 2.
+              accelerator_type (Optional[str], optional): GPU Type. Defaults to None.
+              accelerator_count (Optional[int], optional): No. of GPUs. Defaults to None.
+              sync (bool, optional): Defaults to True.
+          """
+          from typing import Dict, Optional, Sequence, Tuple
+          from google.cloud import aiplatform
+          from google.cloud.aiplatform import explain
+
+          # aiplatform initialization
+          aiplatform.init(project=project_id, location=location)
+
+          # Getting Vertex Model
+          model = aiplatform.Model(model_name=model_name)
+
+          # Creating Vertex Endpoint
+          lr_endpoint = aiplatform.Endpoint.create(
+              display_name=endpoint_display_name, project=project_id, location=location,
+          )
+
+          # Deploying model to endpoint
+          endpoint = model.deploy(
+              endpoint=lr_endpoint,
+              deployed_model_display_name=deployed_model_display_name,
+              traffic_percentage=traffic_percentage,
+              traffic_split=traffic_split,
+              machine_type=machine_type,
+              min_replica_count=min_replica_count,
+              max_replica_count=max_replica_count,
+              accelerator_type=accelerator_type,
+              accelerator_count=accelerator_count,
+              # explanation_metadata=explanation_metadata,
+              # explanation_parameters=explanation_parameters,
+              # metadata=metadata,
+              sync=sync,
+          )
+
+          model.wait()
+          vertex_endpoint.uri = endpoint.resource_name
+          vertex_model.uri = model.resource_name
+
+    args:
+    - --executor_input
+    - {executorInput: null}
+    - --function_to_execute
+    - deploy_bqml_model

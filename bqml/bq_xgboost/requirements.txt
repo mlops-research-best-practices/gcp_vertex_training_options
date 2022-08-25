@@ -1,0 +1,5 @@
+google-cloud-bigquery==1.25.0
+google-cloud
+gcsfs
+google-auth
+google-cloud-logging

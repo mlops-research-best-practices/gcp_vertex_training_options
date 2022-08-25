@@ -53,20 +53,20 @@ FROM
     AND MOD(ABS(FARM_FINGERPRINT(CAST(trip_start_timestamp AS STRING))),1000) = 1
 ) SELECT * FROM chicagotaxitrips
 ```
-**NOTE**: Here, dataset name is `vertex_automl`, and bigquert table name is `taxi_trips`. Feel free to change it and make the samilar changes in `config/setup.py` file
+**NOTE**: Here, dataset name is `vertex_automl`, and bigquert table name is `taxi_trips`. Feel free to change it and make the samilar changes in `config/project_config.py` file
 
 ### Environment Variables
   - `PROJECT`: "your-project-name"
   - `REGION`: e.g."us-central1"
   - `DISPLAY_NAME`: Name 
   - `TEMPLATE_PATH`: <path_to_compile_path>.json
-  - `PIPELINE_ROOT`: gs://<your_bucket_name>/<path_name>
-  - `SERVICE_ACCOUNT`: <your_service_acc_name>@<your_project_id>.iam.gserviceaccount.com
+  - `PIPELINE_ROOT`: "gs://<your_bucket_name>/<path_name>"
+  - `SERVICE_ACCOUNT`: "<your_service_acc_name>@<your_project_id>.iam.gserviceaccount.com"
   - `PIPELINE_NAME` : Give the name you like for your pipeline
   - `BQ_DATA_SRC` : "bq://<project_id>.<bq_dataset>.<bq_table>"
   - `CREDS` : path to your .json credentials file. You can createb from IAM -> Service Account
 
-Ensure all the above variable need to set in `config/setup.py` file. 
+Ensure all the above variable need to set in `config/project_config.py` file. 
 
 **NOTE**
 : Create a google cloud storage bucket. Also, give minimun `Editor` permission/role to your service account.

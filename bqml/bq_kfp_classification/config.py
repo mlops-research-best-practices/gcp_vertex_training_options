@@ -1,0 +1,20 @@
+from datetime import datetime
+PROJECT_ID = "<your_project_id>"
+REGION = "us-central1"
+BUCKET_NAME = "<your_gcs_bucket_name>"
+BUCKET_URI = f"gs://{BUCKET_NAME}"
+AUTH_KEY = "<your_abs_path>/artifacts/creds.json"
+SERVICE_ACCOUNT = "<your_service_account>@developer.gserviceaccount.com"
+IMPORT_FILE = "bq://sara-vertex-demos.beans_demo.large_dataset" # do not change
+BQ_TABLE = "sara-vertex-demos.beans_demo.large_dataset" # do not change
+TARGET = "Class" # do not change
+BQ_MODEL_NAME = "beans_lr_model"
+MODEL_DIR = BUCKET_URI + "/bq_lr_classif_model"
+DATASET_NAME = "bqml_kfp_beans"  # Dataset names cannot contain spaces or special characters such as -, &, @, or %.
+PIPELINE_ROOT = f"{BUCKET_URI}/bq_query"
+PIPELINE_NAME = "bq-lr-beans-pipeline"
+TEMPLATE_PATH = "artifacts/beans_pipeline.json" # you can change name of .json file
+TIMESTAMP = datetime.now().strftime("%Y%m%d%H%M%S")
+MACHINE_TYPE = "n1-standard-2"
+MAX_REPLICA_COUNT = 2
+MIN_REPLICA_COUNT = 1

@@ -1,10 +1,9 @@
 from google.cloud import aiplatform
 from google_cloud_pipeline_components import aiplatform as gcc_aip
-from kfp.v2 import dsl
 from kfp.v2.dsl import pipeline
 
 from deploy import model_deploy
-from config.setup import PIPELINE_ROOT, PIPELINE_NAME, CREDS
+from config.project_config import PIPELINE_ROOT, PIPELINE_NAME
 
 @pipeline(
     name=PIPELINE_NAME,

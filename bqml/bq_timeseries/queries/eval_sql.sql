@@ -1,0 +1,1 @@
+SELECT * FROM ML.EVALUATE(MODEL `{0}.{1}.{2}`);

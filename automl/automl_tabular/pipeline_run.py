@@ -3,7 +3,7 @@ from google.cloud import aiplatform
 from kfp.v2 import compiler
 from pipeline import pipeline
 
-from config.setup import (
+from config.project_config import (
     PROJECT,
     REGION,
     DISPLAY_NAME,

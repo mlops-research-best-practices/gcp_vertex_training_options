@@ -1,5 +1,4 @@
 from typing import NamedTuple
-import logging
 
 from kfp.v2.dsl import (
     component,
@@ -50,7 +49,6 @@ def classification_model_eval_metrics(
     import os
 
     import gcsfs
-    from google.cloud import logging_v2
     from google.oauth2 import service_account
     from google.cloud import aiplatform as aip
 

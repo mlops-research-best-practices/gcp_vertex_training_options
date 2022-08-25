@@ -6,7 +6,7 @@ from kfp.v2.dsl import pipeline
 from deploy import model_deploy
 from validation import classification_model_eval_metrics
 
-from config.setup import PIPELINE_ROOT, PIPELINE_NAME, CREDS
+from config.project_config import PIPELINE_ROOT, PIPELINE_NAME, CREDS
 
 @pipeline(
     name=PIPELINE_NAME,
@@ -56,7 +56,7 @@ def pipeline(
 
     with dsl.Condition(
         model_eval_task.outputs["dep_decision"] == "true",
-        name="deploy_decision",
+        name="deploy_decision"
     ):
         endpoint_op = gcc_aip.EndpointCreateOp(
             project=project,

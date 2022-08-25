@@ -1,0 +1,108 @@
+name: Evaluate bqml model
+description: _summary_
+inputs:
+- {name: project_id, type: String, description: GCP project ID}
+- {name: data_set_id, type: String, description: Bigquery dataset id}
+- {name: model_name, type: String, description: 'BQML model name, user defined'}
+- {name: bucket_name, type: String, description: GCS Bucket name}
+- {name: blob_path, type: String, description: 'GCS bucket path, user defined'}
+outputs:
+- {name: meta_data_path, type: Dataset}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - |2
+
+      if ! [ -x "$(command -v pip)" ]; then
+          python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip
+      fi
+
+      PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'google-cloud-bigquery' 'pandas' 'pyarrow' 'matplotlib' 'db-dtypes' 'google-cloud-storage' 'kfp==1.8.12' && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp -d)
+      printf "%s" "$0" > "$program_path/ephemeral_component.py"
+      python3 -m kfp.v2.components.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+    - |2+
+
+      import kfp
+      from kfp.v2 import dsl
+      from kfp.v2.dsl import *
+      from typing import *
+
+      def evaluate_bqml_model(
+          project_id: str,
+          data_set_id: str,
+          model_name: str,
+          bucket_name: str,
+          blob_path: str,
+          meta_data_path: OutputPath("Dataset"),
+      ):
+          """_summary_
+
+          Args:
+              project_id (str): GCP project ID
+              data_set_id (str): Bigquery dataset id
+              model_name (str): BQML model name, user defined
+              bucket_name (str): GCS Bucket name
+              blob_path (str): GCS bucket path, user defined
+              logistic_data_path (OutputPath): Vertex Path for artifact storage
+
+          """
+          from google.cloud import bigquery
+          from google.cloud.exceptions import NotFound
+          import pandas as pd
+          import pyarrow
+          import matplotlib as plt
+          import time
+
+          client = bigquery.Client(project=project_id)
+
+          # wait to ensure the model exists.  check 5 times with a minute wait between.
+          model_name = project_id + "." + data_set_id + "." + model_name
+
+          for _ in range(0, 5):
+              try:
+                  client.get_model(model_name)  # Make an API request.
+                  # print(f"Model {model_name} already exists.")
+                  break  # if here, the model exists so we exit the loop
+              except:
+                  # print(f"Model {model_name} is not found. Attempt #: {i}")
+                  time.sleep(60)
+
+          def get_sql(bucket_name, blob_path):
+              from google.cloud import storage
+              storage_client = storage.Client()
+              bucket = storage_client.get_bucket(bucket_name)
+              blob = bucket.get_blob(blob_path)
+              content = blob.download_as_string()
+              content = str(content, "utf-8")
+              return content
+
+          content = get_sql(bucket_name, blob_path)
+          eval_model_query = content.format(
+              project_id, data_set_id, model_name
+          )
+
+          job_config = bigquery.QueryJobConfig()
+          query_job = client.query(
+              eval_model_query, job_config=job_config
+          )
+
+          df_evaluation= query_job.result()
+          df_evaluation = df_evaluation.to_dataframe()
+          df_evaluation.to_csv(meta_data_path)
+          # graph = df_evaluation.plot(
+          #     x="threshold", y=["precision", "recall"]
+          # ).get_figure()
+          # graph.savefig(logistic_data_path)
+
+    args:
+    - --executor_input
+    - {executorInput: null}
+    - --function_to_execute
+    - evaluate_bqml_model

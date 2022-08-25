@@ -5,7 +5,7 @@
 ### Environment Variables
   - `PROJECT`: "your-project-name"
   - `REGION`: e.g."us-central1"
-  - `DISPLAY_NAME`: Name 
+  - `DISPLAY_NAME`: Any unique name 
   - `TEMPLATE_PATH`: <path_to_compile_path>.json
   - `PIPELINE_ROOT`: gs://<your_bucket_name>/<path_name>
   - `SERVICE_ACCOUNT`: <your_service_acc_name>@<your_project_id>.iam.gserviceaccount.com
@@ -13,7 +13,7 @@
   - `GCS_DATA_SRC` : do not change this
   - `CREDS` : path to your .json credentials file. You can createb from IAM -> Service Account
 
-Ensure all the above variable need to set in `config/setup.py` file. 
+Ensure all the above variable need to set in `config/project_config.py` file. 
 
 **NOTE**
 : Create a google cloud storage bucket. Also, give minimun `Editor` permission to your service account.
