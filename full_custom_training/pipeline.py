@@ -59,7 +59,7 @@ def pipeline():
     condition1 = validation_op.outputs["evaluation_status"] == "True"
 
     with dsl.Condition(condition1, name="deploy_model"):
-        deploy_op = deploy_model(
+        _ = deploy_model(
             credential_path=CREDENTIAL_PATH,
             model=training_op.outputs["model"],
             project=PROJECT_ID,
